@@ -1,0 +1,53 @@
+# ==== TEMEL AYARLAR ====
+Options -Indexes -MultiViews
+RewriteEngine On
+AddDefaultCharset UTF-8
+
+# ==== HTTPS YÖNLENDİRME (Cloudflare dostu) ====
+RewriteCond %{HTTP:CF-Visitor} '"scheme":"http"'
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ==== WWW YÖNLENDİRME (Döngüsüz) ====
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ==== KATI GÜVENLİK BAŞLIKLARI ====
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ==== KRİTİK DOSYA KORUMASI (Güncellenmiş) ====
+<FilesMatch "\.(env|htaccess|bak|sql|ini|log|sh)$|^(config\.php|composer\.(json|lock))$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ==== PHP AYARLARI ====
+<IfModule php_module>
+  php_value session.cookie_httponly 1
+  php_value session.cookie_secure 1
+  php_value expose_php 0
+</IfModule>
+
+# ==== HATA SAYFALARI ====
+ErrorDocument 400 /error.php?code=400
+ErrorDocument 401 /error.php?code=401
+ErrorDocument 403 /error.php?code=403
+ErrorDocument 404 /error.php?code=404
+ErrorDocument 500 /error.php?code=500
+
+# ==== PERFORMANS İYİLEŞTİRMELERİ ====
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript
+</IfModule>
+
+# ==== cPanel OTOMATİK AYARLAR (DOKUNMA!) ====
+# php -- BEGIN cPanel-generated handler, do not edit
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php74 .php .php7 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
